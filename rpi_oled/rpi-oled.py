@@ -140,7 +140,7 @@ class RPiSystemMonitor:
             try:
 
                 current_time = time.time()
-                print("DEBUG: "+ current_time)
+                print(f"DEBUG: {current_time}")
                 
                 if display_cycle < 2:
                     if current_time - cycle_start_time >= 8:
