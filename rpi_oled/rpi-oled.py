@@ -138,9 +138,6 @@ class RPiSystemMonitor:
 
         while True:
             try:
-                if self.check_shutdown_signal():
-                    self.system_shutdown()
-                    break
 
                 current_time = time.time()
                 print("DEBUG: "+ current_time)
