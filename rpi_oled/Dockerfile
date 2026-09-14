@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     py3-psutil
 
 # Install pure Python libraries (no compilation needed!)
-RUN pip3 install --break-system-packages --no-cache-dir 
+RUN pip3 install --break-system-packages --no-cache-dir \
     smbus2  \
     luma.oled \
     pillow \
