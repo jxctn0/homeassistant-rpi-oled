@@ -28,6 +28,7 @@ class RPiSystemMonitor:
         
         i2c_bus = config["i2c_bus"]
         oled_type = config["oled_type"]
+        print("oled_type: "+ oled_type)
         oled_address = OLED_MAPPINGS[oled_type]
 
         # Initialize i2c bus with config
