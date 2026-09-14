@@ -19,10 +19,10 @@ RUN pip3 install --break-system-packages --no-cache-dir \
 # Setup app
 WORKDIR /app
 COPY rpi-oled.py .
-COPY shutdown.py .
+# COPY shutdown.py . Power button is NOT implemented!!
 
 # Fix permissions
-RUN chmod +x rpi-oled.py shutdown.py
+RUN chmod +x rpi-oled.py
 
 RUN for b in {0..6}; do echo "=== Bus $b ==="; i2cdetect -y -r $b; done
 
