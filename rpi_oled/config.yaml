@@ -1,8 +1,12 @@
 name: "RPi OLED Monitor"
 version: "0.0.1"
 slug: rpi_oled
-description: "Display system info on i2c OLED"
+description: ->
+    "Display system info on a connected i2c OLED display"
 url: "https://github.com/jxctn0/homeassistant-rpi-oled"
+full_access: true
+startup: application
+boot: auto
 arch:
     - aarch64
 devices:
@@ -13,10 +17,6 @@ devices:
     - /dev/i2c-4:rw
     - /dev/i2c-5:rw
     - /dev/i2c-6:rw
-
-full_access: true
-startup: application
-boot: auto
 options:
     i2c_bus: 1
     oled_type: "128x64"
