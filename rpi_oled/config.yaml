@@ -21,4 +21,4 @@ options:
     oled_type: "128x64"
 schema:
     i2c_bus: "int(0,6)"
-    oled_type: "list('ssd1306')"
+    oled_type: "list(ssd1306)"
