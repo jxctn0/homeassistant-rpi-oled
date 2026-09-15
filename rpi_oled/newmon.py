@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 ## monitor_ssd1306_supervisor.py
-# System status monitor querying Home Assistant states via the Supervisor API proxy for an SSD1306
+# Configurable SSD1306 system status monitor reading UI options from /data/options.json
 
+import json
 import os
 import time
 import requests
@@ -10,13 +11,39 @@ from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 from luma.oled.device import ssd1306
 
+#= OPTIONS_PATH
+#  Path where HA Supervisor mounts user options configured in the UI
+OPTIONS_PATH = "/data/options.json"
+
+# Default configuration fallback
+DEFAULT_CONFIG = {
+    "bus_number": 1,
+    "i2c_address": "0x3C",
+    "sensor_cpu_temp": "sensor.processor_temperature",
+    "sensor_cpu_use": "sensor.processor_use",
+    "sensor_ram_use": "sensor.memory_use",
+    "sensor_ram_free": "sensor.memory_free",
+    "sensor_disk_use": "sensor.disk_use_",
+    "sensor_disk_free": "sensor.disk_free_",
+    "sensor_net_tx": "sensor.network_throughput_out_eth0",
+    "sensor_net_rx": "sensor.network_throughput_in_eth0",
+}
+
 
 class HASupervisorSystemMonitor:
     #: __init__
-    #  Initialises the SSD1306 display on /dev/i2c-1 at 0x3C and sets up API headers
-    def __init__(self, bus_number=1, address=0x3C):
-        self.bus_number = bus_number
-        self.address = address
+    #  Loads UI options and initialises the SSD1306 display
+    def __init__(self):
+        self.config = self.load_config()
+
+        # Parse I2C address string (e.g., "0x3C" -> 0x3C)
+        try:
+            addr_str = self.config.get("i2c_address", "0x3C")
+            self.address = int(addr_str, 16) if isinstance(addr_str, str) else int(addr_str)
+        except ValueError:
+            self.address = 0x3C
+
+        self.bus_number = int(self.config.get("bus_number", 1))
         self.device = None
 
         try:
@@ -30,7 +57,6 @@ class HASupervisorSystemMonitor:
             self.device = None
 
         #= supervisor_token
-        #  Token automatically provided by HA Supervisor inside the Add-on container
         self.supervisor_token = os.environ.get("SUPERVISOR_TOKEN", "")
         #= headers
         self.headers = {
@@ -38,10 +64,24 @@ class HASupervisorSystemMonitor:
             "Content-Type": "application/json",
         }
 
+    #: load_config
+    #  Reads user configuration set via Home Assistant UI options tab
+    def load_config(self):
+        if os.path.exists(OPTIONS_PATH):
+            try:
+                with open(OPTIONS_PATH, "r") as f:
+                    user_opts = json.load(f)
+                    print(f"Loaded configuration from {OPTIONS_PATH}")
+                    # Merge user options over default config
+                    return {**DEFAULT_CONFIG, **user_opts}
+            except Exception as e:
+                print(f"Failed to read options file: {e}")
+        return DEFAULT_CONFIG
+
     #: get_state_value
-    #  Extracts state string from HA Core API via the Supervisor proxy
+    #  Extracts state string from HA Core API via Supervisor proxy
     def get_state_value(self, entity_id):
-        if not self.supervisor_token:
+        if not self.supervisor_token or not entity_id:
             return None
         try:
             url = f"http://supervisor/core/api/states/{entity_id}"
@@ -55,7 +95,7 @@ class HASupervisorSystemMonitor:
             return None
 
     #: get_hostname
-    #  Retrieves system host name from HA Core config endpoint or fallback
+    #  Retrieves system host name from HA Core config endpoint
     def get_hostname(self):
         if not self.supervisor_token:
             return "HOMEASSISTANT"
@@ -70,10 +110,10 @@ class HASupervisorSystemMonitor:
             return "HOMEASSISTANT"
 
     #: get_cpu_info
-    #  Retrieves CPU temp and utilisation states via API
+    #  Retrieves CPU temp and utilization using configured entity IDs
     def get_cpu_info(self):
-        temp_val = self.get_state_value("sensor.processor_temperature")
-        usage_val = self.get_state_value("sensor.processor_use")
+        temp_val = self.get_state_value(self.config.get("sensor_cpu_temp"))
+        usage_val = self.get_state_value(self.config.get("sensor_cpu_use"))
 
         try:
             temp = float(temp_val) if temp_val else 0.0
@@ -88,10 +128,10 @@ class HASupervisorSystemMonitor:
         return temp, usage
 
     #: get_memory_info
-    #  Retrieves RAM usage and total memory formatted to nearest GiB
+    #  Retrieves RAM usage using configured entity IDs formatted to nearest GiB
     def get_memory_info(self):
-        used_val = self.get_state_value("sensor.memory_use")
-        free_val = self.get_state_value("sensor.memory_free")
+        used_val = self.get_state_value(self.config.get("sensor_ram_use"))
+        free_val = self.get_state_value(self.config.get("sensor_ram_free"))
 
         try:
             used_mib = float(used_val)
@@ -103,10 +143,10 @@ class HASupervisorSystemMonitor:
             return "N/AGiB"
 
     #: get_storage_info
-    #  Retrieves disk usage states formatted to GiB or TiB
+    #  Retrieves disk usage using configured entity IDs formatted to GiB/TiB
     def get_storage_info(self):
-        used_val = self.get_state_value("sensor.disk_use_")
-        free_val = self.get_state_value("sensor.disk_free_")
+        used_val = self.get_state_value(self.config.get("sensor_disk_use"))
+        free_val = self.get_state_value(self.config.get("sensor_disk_free"))
 
         try:
             used_gib = float(used_val) if used_val else 0.0
@@ -128,11 +168,12 @@ class HASupervisorSystemMonitor:
             return "N/A"
 
     #: get_network_info
-    #  Retrieves throughput speeds converted from MB/s to Mb/s
+    #  Retrieves network throughput using configured entity IDs converted to Mb/s
     def get_network_info(self):
-        tx_val = self.get_state_value("sensor.network_throughput_out_eth0")
-        rx_val = self.get_state_value("sensor.network_throughput_in_eth0")
+        tx_val = self.get_state_value(self.config.get("sensor_net_tx"))
+        rx_val = self.get_state_value(self.config.get("sensor_net_rx"))
 
+        # Fallback check if user hasn't specified eth0 suffix explicitly
         if tx_val is None:
             tx_val = self.get_state_value("sensor.network_throughput_out")
             rx_val = self.get_state_value("sensor.network_throughput_in")
@@ -174,7 +215,7 @@ class HASupervisorSystemMonitor:
             draw.text((0, 51), f"NET: {ul_speed:.1f}M \u2191 | {dl_speed:.1f}M \u2193", fill="white")
 
     #: run
-    #  Main execution loop for standalone add-on execution
+    #  Main execution loop for add-on process
     def run(self):
         if not self.device:
             print("No display available. Exiting.")
@@ -190,5 +231,5 @@ class HASupervisorSystemMonitor:
 
 
 if __name__ == "__main__":
-    monitor = HASupervisorSystemMonitor(bus_number=1, address=0x3C)
+    monitor = HASupervisorSystemMonitor()
     monitor.run()
