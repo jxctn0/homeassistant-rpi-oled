@@ -1,5 +1,5 @@
 name: "RPi OLED Monitor"
-version: "0.0.5"
+version: "0.1.0"
 description: "Display system info on a connected i2c OLED display"
 url: "https://github.com/jxctn0/homeassistant-rpi-oled"
 homeassistant_api: true
