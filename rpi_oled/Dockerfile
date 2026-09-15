@@ -8,6 +8,10 @@ RUN apk add --no-cache \
     i2c-tools \
     py3-psutil
 
+# Install developer packages - this WILL be removed 
+RUN apk add --no-cache \
+    nano
+
 # Install pure Python libraries (no compilation needed!)
 RUN pip3 install --break-system-packages --no-cache-dir \
     smbus2  \
