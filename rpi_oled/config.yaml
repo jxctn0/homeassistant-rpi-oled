@@ -1,5 +1,5 @@
 name: "RPi OLED Monitor"
-version: "0.0.4"
+version: "0.0.5"
 description: "Display system info on a connected i2c OLED display"
 url: "https://github.com/jxctn0/homeassistant-rpi-oled"
 homeassistant_api: true
@@ -31,11 +31,11 @@ options:
 schema:
     bus_number: int
     i2c_address: str
-    sensor_cpu_temp: device
-    sensor_cpu_use: device
-    sensor_ram_use: device
-    sensor_ram_free: device
-    sensor_disk_use: device
-    sensor_disk_free: device
-    sensor_net_tx: device
-    sensor_net_rx: device
+    sensor_cpu_temp: str
+    sensor_cpu_use: str
+    sensor_ram_use: str
+    sensor_ram_free: str
+    sensor_disk_use: str
+    sensor_disk_free: str
+    sensor_net_tx: str
+    sensor_net_rx: str
