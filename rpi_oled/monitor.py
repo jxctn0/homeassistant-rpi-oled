@@ -13,6 +13,7 @@ from luma.core.render import canvas
 from luma.oled.device import ssd1306
 
 
+
 class RPiSystemMonitor:
     #: __init__
     #  Initialises the SSD1306 display on /dev/i2c-1 at 0x3C
