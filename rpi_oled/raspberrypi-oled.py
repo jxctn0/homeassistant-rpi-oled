@@ -74,7 +74,7 @@ class HASupervisorSystemMonitor:
         self.icons = self.load_icons()
 
     #: load_icons
-    #  Pre-loads 12x12 1-bit monochrome images from /app/icons/
+    #  Pre-loads 12x12 1-bit monochrome images from /app/icons/12x12
     def load_icons(self):
         icon_names = [
             "cpu_32",
