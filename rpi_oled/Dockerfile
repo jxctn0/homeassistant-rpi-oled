@@ -19,6 +19,7 @@ RUN pip3 install --break-system-packages --no-cache-dir \
 # Setup app
 WORKDIR /app
 COPY rpi-oled.py .
+COPY testfile.py .
 # COPY shutdown.py . Power button is NOT implemented!!
 
 # Fix permissions
