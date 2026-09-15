@@ -20,22 +20,22 @@ devices:
 options:
     bus_number: 1
     i2c_address: "0x3C"
-    sensor_cpu_temp: sensor.processor_temperature
-    sensor_cpu_use: sensor.processor_use
-    sensor_ram_use: sensor.memory_use
-    sensor_ram_free: sensor.memory_free
-    sensor_disk_use: sensor.disk_use_
-    sensor_disk_free: sensor.disk_free_
-    sensor_net_tx: sensor.network_throughput_out_eth0
-    sensor_net_rx: sensor.network_throughput_in_eth0
+    sensor_cpu_temp: sensor.system_monitor_processor_temperature
+    sensor_cpu_use: sensor.system_monitor_processor_use
+    sensor_ram_use: sensor.system_homeassistant_glances_memory_use
+    sensor_ram_free: sensor.system_homeassistant_glances_memory_free
+    sensor_disk_use: sensor.system_homeassistant_glances_data_disk_size
+    sensor_disk_free: sensor.system_homeassistant_glances_data_disk_used
+    sensor_net_tx: sensor.system_homeassistant_glances_hassio_tx
+    sensor_net_rx: sensor.system_homeassistant_glances_hassio_rx
 schema:
     bus_number: int
     i2c_address: str
-    sensor_cpu_temp: str
-    sensor_cpu_use: str
-    sensor_ram_use: str
-    sensor_ram_free: str
-    sensor_disk_use: str
-    sensor_disk_free: str
-    sensor_net_tx: str
-    sensor_net_rx: str
+    sensor_cpu_temp: device
+    sensor_cpu_use: device
+    sensor_ram_use: device
+    sensor_ram_free: device
+    sensor_disk_use: device
+    sensor_disk_free: device
+    sensor_net_tx: device
+    sensor_net_rx: device
