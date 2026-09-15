@@ -34,5 +34,4 @@ RUN chmod +x rpi-oled.py
 #     fi
 
 # Run script
-# CMD ["python3", "rpi-oled.py"]
-CMD ["while :; do echo; sleep 1; done"]
+CMD ["python3", "testfile.py"]
