@@ -9,6 +9,7 @@ from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 from luma.oled.device import ssd1306
 
+
 #= hass
 #  Reference to the Home Assistant core engine object passed in at runtime
 #  (e.g., inside an AppDaemon daemon, PyScript module, or HA custom component)
