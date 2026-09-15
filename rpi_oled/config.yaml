@@ -17,8 +17,8 @@ devices:
     - /dev/i2c-5:rw
     - /dev/i2c-6:rw
 options:
-    i2c_bus: 1
-    oled_type: "128x64"
+    i2c Bus: 1
+    OLED Type: "ssd1306"
 schema:
-    i2c_bus: "int(0,6)"
-    oled_type: "list(ssd1306)"
+    i2c Bus: "int(0,6)"
+    OLED Type: "list(ssd1306)"
