@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
-## monitor_ssd1306_ha_core.py
-# System status monitor querying homeassistant.core states engine for an SSD1306
+## monitor_ssd1306_supervisor.py
+# System status monitor querying Home Assistant states via the Supervisor API proxy for an SSD1306
 
-import asyncio
+import os
 import time
+import requests
 from PIL import Image, ImageDraw, ImageFont
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 from luma.oled.device import ssd1306
 
 
-#= hass
-#  Reference to the Home Assistant core engine object passed in at runtime
-#  (e.g., inside an AppDaemon daemon, PyScript module, or HA custom component)
-#  Assumes self.hass or global `hass` context is available.
-
-
-
-class HACoreSystemMonitor:
+class HASupervisorSystemMonitor:
     #: __init__
-    #  Initialises the SSD1306 display on /dev/i2c-1 at 0x3C
-    def __init__(self, hass, bus_number=1, address=0x3C):
-        self.hass = hass
+    #  Initialises the SSD1306 display on /dev/i2c-1 at 0x3C and sets up API headers
+    def __init__(self, bus_number=1, address=0x3C):
         self.bus_number = bus_number
         self.address = address
         self.device = None
@@ -36,28 +29,48 @@ class HACoreSystemMonitor:
             print(f"Failed to initialise display: {e}")
             self.device = None
 
+        #= supervisor_token
+        #  Token automatically provided by HA Supervisor inside the Add-on container
+        self.supervisor_token = os.environ.get("SUPERVISOR_TOKEN", "")
+        #= headers
+        self.headers = {
+            "Authorization": f"Bearer {self.supervisor_token}",
+            "Content-Type": "application/json",
+        }
+
     #: get_state_value
-    #  Extracts state string directly from homeassistant.core state engine
+    #  Extracts state string from HA Core API via the Supervisor proxy
     def get_state_value(self, entity_id):
+        if not self.supervisor_token:
+            return None
         try:
-            state_obj = self.hass.states.get(entity_id)
-            if state_obj and state_obj.state not in ("unavailable", "unknown"):
-                return state_obj.state
+            url = f"http://supervisor/core/api/states/{entity_id}"
+            response = requests.get(url, headers=self.headers, timeout=3)
+            if response.status_code == 200:
+                state_val = response.json().get("state")
+                if state_val not in ("unavailable", "unknown"):
+                    return state_val
             return None
         except Exception:
             return None
 
     #: get_hostname
-    #  Retrieves system host name from HA core location name or default
+    #  Retrieves system host name from HA Core config endpoint or fallback
     def get_hostname(self):
+        if not self.supervisor_token:
+            return "HOMEASSISTANT"
         try:
-            name = self.hass.config.location_name
-            return name.upper() if name else "HOMEASSISTANT"
+            url = "http://supervisor/core/api/config"
+            response = requests.get(url, headers=self.headers, timeout=3)
+            if response.status_code == 200:
+                name = response.json().get("location_name")
+                return name.upper() if name else "HOMEASSISTANT"
+            return "HOMEASSISTANT"
         except Exception:
             return "HOMEASSISTANT"
 
     #: get_cpu_info
-    #  Retrieves CPU temp and utilization states from core engine
+    #  Retrieves CPU temp and utilisation states via API
     def get_cpu_info(self):
         temp_val = self.get_state_value("sensor.processor_temperature")
         usage_val = self.get_state_value("sensor.processor_use")
@@ -160,17 +173,22 @@ class HACoreSystemMonitor:
             # Row 4: Network Speeds (Uplink | Download)
             draw.text((0, 51), f"NET: {ul_speed:.1f}M \u2191 | {dl_speed:.1f}M \u2193", fill="white")
 
+    #: run
+    #  Main execution loop for standalone add-on execution
+    def run(self):
+        if not self.device:
+            print("No display available. Exiting.")
+            return
 
-#: async_setup_entry
-#  Integration entry point if running inside a Home Assistant Core component
-async def async_setup_entry(hass, entry):
-    monitor = HACoreSystemMonitor(hass=hass, bus_number=1, address=0x3C)
-
-    async def refresh_loop(_):
         while True:
-            # Run rendering synchronous code in executor thread to keep event loop free
-            await hass.async_add_executor_job(monitor.update_display)
-            await asyncio.sleep(2)
+            try:
+                self.update_display()
+                time.sleep(2)
+            except Exception as e:
+                print(f"Runtime error: {e}")
+                time.sleep(5)
 
-    hass.async_create_background_task(refresh_loop(None), "ssd1306_monitor_task")
-    return True
+
+if __name__ == "__main__":
+    monitor = HASupervisorSystemMonitor(bus_number=1, address=0x3C)
+    monitor.run()

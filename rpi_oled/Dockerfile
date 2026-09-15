@@ -18,7 +18,8 @@ RUN pip3 install --break-system-packages --no-cache-dir \
     luma.oled \
     pillow \
     psutil \
-    smbus2
+    smbus2 \
+    requests
 
 # Setup app
 WORKDIR /app

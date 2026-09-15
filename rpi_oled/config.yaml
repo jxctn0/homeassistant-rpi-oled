@@ -18,8 +18,24 @@ devices:
     - /dev/i2c-5:rw
     - /dev/i2c-6:rw
 options:
-    i2c Bus: 1
-    OLED Type: "ssd1306"
+    bus_number: 1
+    i2c_address: "0x3C"
+    sensor_cpu_temp: sensor.processor_temperature
+    sensor_cpu_use: sensor.processor_use
+    sensor_ram_use: sensor.memory_use
+    sensor_ram_free: sensor.memory_free
+    sensor_disk_use: sensor.disk_use_
+    sensor_disk_free: sensor.disk_free_
+    sensor_net_tx: sensor.network_throughput_out_eth0
+    sensor_net_rx: sensor.network_throughput_in_eth0
 schema:
-    i2c Bus: "int(0,6)"
-    OLED Type: "list(ssd1306)"
+    bus_number: int
+    i2c_address: str
+    sensor_cpu_temp: str
+    sensor_cpu_use: str
+    sensor_ram_use: str
+    sensor_ram_free: str
+    sensor_disk_use: str
+    sensor_disk_free: str
+    sensor_net_tx: str
+    sensor_net_rx: str
