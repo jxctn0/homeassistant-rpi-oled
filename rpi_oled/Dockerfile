@@ -23,21 +23,12 @@ RUN pip3 install --break-system-packages --no-cache-dir \
 
 # Setup app
 WORKDIR /app
-COPY rpi-oled.py .
+COPY raspberrypi-oled.py .
 COPY testfile.py .
-# COPY shutdown.py . Power button is NOT implemented!!
+copy icons/ .
 
 # Fix permissions
 RUN chmod +x rpi-oled.py
-
-# RUN devs=($(ls /dev/i2c-[0-6] 2>/dev/null)); \
-#     if [ ${#devs[@]} -eq 0 ]; \
-#         then echo "No I2C devices < 7 found"; \
-#         else echo "Found: ${devs[*]}"; \
-#         for dev in "${devs[@]}"; do b=${dev##*-}; \
-#         echo -e "\n=== Bus $b ($dev) ==="; i2cdetect -y -r $b; \
-#         done; \
-#     fi
 
 # Run script
 CMD ["python3", "testfile.py"]
