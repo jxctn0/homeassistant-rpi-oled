@@ -28,7 +28,7 @@ COPY testfile.py .
 copy icons/ .
 
 # Fix permissions
-RUN chmod +x rpi-oled.py
+RUN chmod +x raspberrypi-oled.py
 
 # Run script
 CMD ["python3", "testfile.py"]
